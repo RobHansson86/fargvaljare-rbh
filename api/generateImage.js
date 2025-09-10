@@ -28,7 +28,7 @@ export default async function handler(request, response) {
                 ]
             }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { responseModalities: ['IMAGE'] }
+            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
         };
         
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
