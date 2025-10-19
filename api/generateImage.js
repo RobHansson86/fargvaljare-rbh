@@ -4,10 +4,10 @@ export default async function handler(request, response) {
     }
 
     try {
-        const { imageData, colorName } = request.body;
+        const { imageData, colorPrompt, colorHex, colorLabel } = request.body;
 
-        if (!imageData || !colorName) {
-            return response.status(400).json({ error: 'Missing imageData or colorName in request body' });
+        if (!imageData || !colorPrompt) {
+            return response.status(400).json({ error: 'Missing imageData or colorPrompt in request body' });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
@@ -17,7 +17,11 @@ export default async function handler(request, response) {
         }
 
         const systemPrompt = "You are an expert interior design AI. Your task is to realistically repaint the main walls of a room in a user-provided image to a specified color. You must carefully identify only the vertical wall surfaces. It is critical to exclude ceilings, floors, furniture, windows, doors, trim, and decorations. The new color should be applied with realistic lighting, shadows, and textures to seamlessly blend into the original image.";
-        const userPrompt = `Recolor only the walls in this room to the NCS color "${colorName}". Do not color the ceiling or floor. Maintain all other elements of the room as they are.`;
+        const promptDescription = colorHex && !colorPrompt.includes(colorHex)
+            ? `${colorPrompt} (${colorHex})`
+            : colorPrompt;
+        const label = colorLabel && !promptDescription.includes(colorLabel) ? ` (${colorLabel})` : '';
+        const userPrompt = `Recolor only the walls in this room to the color ${promptDescription}${label}. Do not color the ceiling or floor. Maintain all other elements of the room as they are.`;
 
         const payload = {
             contents: [{

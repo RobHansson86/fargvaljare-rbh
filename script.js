@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const changeImageButton = document.getElementById('changeImageButton');
     const colorInput = document.getElementById('colorInput');
     const colorPreview = document.getElementById('colorPreview');
+    const colorPicker = document.getElementById('colorPicker');
+    const colorPickerValue = document.getElementById('colorPickerValue');
     const fluggerDatalist = document.getElementById('flugger-colors');
     const downloadButtons = document.getElementById('downloadButtons');
     const downloadButton = document.getElementById('downloadButton');
@@ -26,6 +28,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let originalImageData = null;
     let debounceTimer;
+    let currentResolvedColor = null;
+
+    if (colorPicker) {
+        colorPicker.value = '#F8F8F7';
+    }
+    if (colorPickerValue) {
+        colorPickerValue.textContent = '#F8F8F7';
+    }
 
     const fluggerColors = [
         { name: "White", ncs: "S 0500-N", hex: "#F8F8F7" }, { name: "Calm", ncs: "S 1002-Y", hex: "#EAE6DA" }, { name: "Pale Beach", ncs: "S 1005-Y20R", hex: "#EAE1D5" }, { name: "Space", ncs: "S 1500-N", hex: "#DCDDDE" }, { name: "Cloudy", ncs: "S 1502-Y", hex: "#DBD7CA" }, { name: "Silver Grey", ncs: "S 2000-N", hex: "#CACFD1" }, { name: "Dusty Grey", ncs: "S 2502-Y", hex: "#C2BEB4" }, { name: "Warm Grey", ncs: "S 3502-Y", hex: "#A8A59C" }, { name: "Dark Grey", ncs: "S 6502-Y", hex: "#636361" }, { name: "Sea Mist", ncs: "S 1005-B20G", hex: "#DAE2E1" }, { name: "Ocean", ncs: "S 2010-B10G", hex: "#BFCED1" }, { name: "Deep Sea", ncs: "S 4020-B10G", hex: "#83989D" }, { name: "Forest", ncs: "S 6010-B70G", hex: "#526760" }, { name: "Moss Green", ncs: "S 4010-G70Y", hex: "#8F917B" }, { name: "Soft Green", ncs: "S 2005-G70Y", hex: "#D0D1C6" }, { name: "Antique Green", ncs: "S 3010-G50Y", hex: "#AEB3A3" }, { name: "Khaki", ncs: "S 4010-G90Y", hex: "#95927A" }, { name: "Golden Sand", ncs: "S 1010-Y10R", hex: "#E5DBCB" }, { name: "Sahara", ncs: "S 2020-Y10R", hex: "#D2C2A8" }, { name: "Terracotta", ncs: "S 3040-Y50R", hex: "#B88365" }, { name: "Vintage Rose", ncs: "S 2010-Y80R", hex: "#D1BDB4" }, { name: "Soft Rose", ncs: "S 1010-Y70R", hex: "#E6D1CA" }, { name: "IN-791 Antikvit", ncs: "S 0502-Y", hex: "#f0ede3" }, { name: "IN-792 Råvit", ncs: "S 0603-Y", hex: "#ebe6d8" }, { name: "IN-793 Ljusgrå", ncs: "S 1000-N", hex: "#e5e6e6" }, { name: "IN-794 Grå", ncs: "S 1500-N", hex: "#d9dada" }, { name: "IN-795 Betonggrå", ncs: "S 2500-N", hex: "#c2c4c5" }, { name: "IN-796 Varmgrå", ncs: "S 2002-Y", hex: "#ccc9bf" }, { name: "IN-797 Sand", ncs: "S 1005-Y20R", hex: "#e9e1d5" }, { name: "IN-798 Ljus Toffee", ncs: "S 1010-Y30R", hex: "#e6d8c8" }, { name: "IN-799 Dimrosa", ncs: "S 1010-Y70R", hex: "#e5d1c9" }, { name: "IN-800 Mistel", ncs: "S 1010-G10Y", hex: "#dce2d7" }, { name: "IN-801 Mint", ncs: "S 1010-B90G", hex: "#d9e4e0" }, { name: "IN-802 Ljusblå", ncs: "S 1010-R90B", hex: "#d8dfe5" }, { name: "IN-803 Ljus Jeansblå", ncs: "S 1510-B", hex: "#d1d9df" }, { name: "IN-804 Jeansblå", ncs: "S 2010-B", hex: "#c2cdd3" }, { name: "IN-805 Petrol", ncs: "S 3010-B", hex: "#a4b2b9" }, { name: "IN-806 Salvia", ncs: "S 2010-G30Y", hex: "#c2c9bc" }, { name: "IN-807 Oliv", ncs: "S 3010-G70Y", hex: "#b4b7a7" }, { name: "IN-808 Curry", ncs: "S 2020-Y", hex: "#d6cca9" }, { name: "IN-809 Ockra", ncs: "S 2030-Y10R", hex: "#d2c0a1" }, { name: "IN-810 Toffee", ncs: "S 2010-Y40R", hex: "#d1c4b3" }, { name: "IN-811 Puderrosa", ncs: "S 1510-Y80R", hex: "#d9c3ba" }, { name: "IN-812 Bordeaux", ncs: "S 4030-Y90R", hex: "#a17873" }, { name: "U-042 Ljusgrå", ncs: "S 0500-N", hex: "#f2f2f1" }, { name: "U-043 Grå", ncs: "S 1000-N", hex: "#e5e6e6" }, { name: "U-456 Skiffergrå", ncs: "S 4500-N", hex: "#8c8f91" }, { name: "U-457 Antracitgrå", ncs: "S 7500-N", hex: "#4c5053" }, { name: "U-458 Svart", ncs: "S 9000-N", hex: "#2b2e31" }, { name: "U-459 Havsblå", ncs: "S 5030-B", hex: "#638099" }, { name: "U-460 Mörkblå", ncs: "S 7020-R90B", hex: "#3e475c" }, { name: "U-461 Mörkgrön", ncs: "S 7020-B90G", hex: "#39514c" }, { name: "U-462 Röd", ncs: "S 1580-Y90R", hex: "#d32f27" }
@@ -51,29 +61,200 @@ document.addEventListener("DOMContentLoaded", function() {
          return null;
     }
 
-    async function updateColorPreview(colorQuery) {
-        if (!colorPreview) return;
-        const foundColor = findColor(colorQuery);
-        if(foundColor) {
-            colorPreview.style.backgroundColor = foundColor.hex;
-            return;
+    function clampByte(value) {
+        const number = Number(value);
+        if (Number.isNaN(number)) return 0;
+        return Math.min(255, Math.max(0, Math.round(number)));
+    }
+
+    function componentToHex(value) {
+        const hex = clampByte(value).toString(16).toUpperCase();
+        return hex.length === 1 ? `0${hex}` : hex;
+    }
+
+    function rgbToHex(r, g, b) {
+        return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
+    }
+
+    function sanitizeForFilename(text) {
+        if (!text) return 'vald_farg';
+        return text
+            .toString()
+            .trim()
+            .replace(/[^a-zA-Z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .substring(0, 60) || 'vald_farg';
+    }
+
+    async function resolveColorDetails(query) {
+        const trimmed = query.trim();
+        if (!trimmed) {
+            return null;
         }
-        try {
-            const response = await fetch(`https://www.thecolorapi.com/id?ncs=${encodeURIComponent(colorQuery)}`);
-            if (!response.ok) { 
-                colorPreview.style.backgroundColor = 'transparent';
-                return;
+
+        const foundColor = findColor(trimmed);
+        if (foundColor) {
+            const hex = foundColor.hex.toUpperCase();
+            return {
+                source: 'flugger',
+                name: foundColor.name,
+                displayLabel: `${foundColor.name} (${foundColor.ncs})`,
+                ncs: foundColor.ncs,
+                hex,
+                prompt: `${foundColor.name} (NCS ${foundColor.ncs})`,
+                downloadId: sanitizeForFilename(foundColor.ncs)
+            };
+        }
+
+        const hexMatch = trimmed.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (hexMatch) {
+            let hexValue = hexMatch[1];
+            if (hexValue.length === 3) {
+                hexValue = hexValue.split('').map(ch => `${ch}${ch}`).join('');
             }
-            const data = await response.json();
-            if (data.hex && data.hex.value) {
-                colorPreview.style.backgroundColor = data.hex.value;
-            } else {
-                colorPreview.style.backgroundColor = 'transparent';
+            const hex = `#${hexValue.toUpperCase()}`;
+            return {
+                source: 'hex',
+                name: hex,
+                displayLabel: hex,
+                ncs: null,
+                hex,
+                prompt: `the RGB color ${hex}`,
+                downloadId: sanitizeForFilename(hex.replace('#', 'hex_'))
+            };
+        }
+
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext && canvas.getContext('2d');
+            if (ctx) {
+                ctx.fillStyle = trimmed;
+                const normalized = ctx.fillStyle;
+                if (normalized) {
+                    if (normalized.startsWith('#')) {
+                        const hex = normalized.toUpperCase();
+                        return {
+                            source: 'hex',
+                            name: hex,
+                            displayLabel: hex,
+                            ncs: null,
+                            hex,
+                            prompt: `the RGB color ${hex}`,
+                            downloadId: sanitizeForFilename(hex.replace('#', 'hex_'))
+                        };
+                    }
+                    const rgbMatchNormalized = normalized.match(/^rgb\((\d{1,3}), (\d{1,3}), (\d{1,3})\)$/i);
+                    if (rgbMatchNormalized) {
+                        const r = clampByte(rgbMatchNormalized[1]);
+                        const g = clampByte(rgbMatchNormalized[2]);
+                        const b = clampByte(rgbMatchNormalized[3]);
+                        const rgbString = `rgb(${r}, ${g}, ${b})`;
+                        const hex = rgbToHex(r, g, b);
+                        return {
+                            source: 'rgb',
+                            name: rgbString,
+                            displayLabel: rgbString,
+                            ncs: null,
+                            hex,
+                            prompt: `the RGB color ${rgbString}`,
+                            downloadId: sanitizeForFilename(`${r}_${g}_${b}`)
+                        };
+                    }
+                }
             }
         } catch (error) {
-             colorPreview.style.backgroundColor = 'transparent';
-             console.error("Kunde inte hämta färg för NCS:", error);
+            console.error('Kunde inte tolka CSS-färg:', error);
         }
+
+        const rgbMatch = trimmed.match(/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
+        if (rgbMatch) {
+            const r = clampByte(rgbMatch[1]);
+            const g = clampByte(rgbMatch[2]);
+            const b = clampByte(rgbMatch[3]);
+            const rgbString = `rgb(${r}, ${g}, ${b})`;
+            const hex = rgbToHex(r, g, b);
+            return {
+                source: 'rgb',
+                name: rgbString,
+                displayLabel: rgbString,
+                ncs: null,
+                hex,
+                prompt: `the RGB color ${rgbString}`,
+                downloadId: sanitizeForFilename(`${r}_${g}_${b}`)
+            };
+        }
+
+        const simpleRgbMatch = trimmed.match(/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/);
+        if (simpleRgbMatch) {
+            const r = clampByte(simpleRgbMatch[1]);
+            const g = clampByte(simpleRgbMatch[2]);
+            const b = clampByte(simpleRgbMatch[3]);
+            const rgbString = `rgb(${r}, ${g}, ${b})`;
+            const hex = rgbToHex(r, g, b);
+            return {
+                source: 'rgb',
+                name: rgbString,
+                displayLabel: rgbString,
+                ncs: null,
+                hex,
+                prompt: `the RGB color ${rgbString}`,
+                downloadId: sanitizeForFilename(`${r}_${g}_${b}`)
+            };
+        }
+
+        let fetchedHex = null;
+        try {
+            const response = await fetch(`https://www.thecolorapi.com/id?ncs=${encodeURIComponent(trimmed)}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.hex && data.hex.value) {
+                    fetchedHex = data.hex.value.toUpperCase();
+                }
+            }
+        } catch (error) {
+            console.error('Kunde inte hämta färg för NCS:', error);
+        }
+
+        return {
+            source: 'custom',
+            name: trimmed,
+            displayLabel: trimmed,
+            ncs: trimmed,
+            hex: fetchedHex,
+            prompt: trimmed,
+            downloadId: sanitizeForFilename(trimmed)
+        };
+    }
+
+    async function updateColorPreview(colorQuery, options = {}) {
+        if (!colorPreview) return null;
+        const query = colorQuery.trim();
+        if (!query) {
+            colorPreview.style.backgroundColor = 'transparent';
+            if (colorPickerValue) colorPickerValue.textContent = '--';
+            currentResolvedColor = null;
+            return null;
+        }
+
+        const resolved = await resolveColorDetails(query);
+        currentResolvedColor = resolved;
+
+        if (resolved && resolved.hex) {
+            colorPreview.style.backgroundColor = resolved.hex;
+            if (colorPickerValue) {
+                colorPickerValue.textContent = resolved.hex.toUpperCase();
+            }
+            if (colorPicker && !options.skipPickerUpdate && /^#[0-9A-F]{6}$/i.test(resolved.hex)) {
+                colorPicker.value = resolved.hex;
+            }
+        } else {
+            colorPreview.style.backgroundColor = 'transparent';
+            if (colorPickerValue) {
+                colorPickerValue.textContent = resolved ? resolved.displayLabel : '--';
+            }
+        }
+
+        return resolved;
     }
     
     if (colorInput) {
@@ -83,6 +264,19 @@ document.addEventListener("DOMContentLoaded", function() {
             debounceTimer = setTimeout(() => {
                 updateColorPreview(query);
             }, 200);
+        });
+    }
+
+    if (colorPicker) {
+        colorPicker.addEventListener('input', (e) => {
+            const hexValue = e.target.value.toUpperCase();
+            if (colorInput) {
+                colorInput.value = hexValue;
+            }
+            if (colorPickerValue) {
+                colorPickerValue.textContent = hexValue;
+            }
+            updateColorPreview(hexValue, { skipPickerUpdate: true });
         });
     }
     
@@ -147,9 +341,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     if (repaintButton) {
-        repaintButton.addEventListener('click', () => {
+        repaintButton.addEventListener('click', async () => {
             if (!originalImageData) {
                 alert('Du måste ladda upp en bild först.');
+                return;
+            }
+            if (!colorInput) {
+                alert('Ange en giltig färg eller NCS-kod.');
                 return;
             }
             const query = colorInput.value.trim();
@@ -157,12 +355,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 alert('Ange en giltig färg eller NCS-kod.');
                 return;
             }
-            
-            const foundColor = findColor(query);
-            const ncsCode = foundColor ? foundColor.ncs : query;
-            
-            const colorInfo = { name: ncsCode, ncs: ncsCode };
-            generateImage(originalImageData, colorInfo);
+
+            const colorDetails = await updateColorPreview(query);
+            if (!colorDetails) {
+                alert('Ange en giltig färg eller NCS-kod.');
+                return;
+            }
+
+            generateImage(originalImageData, colorDetails);
         });
     }
     
@@ -177,27 +377,33 @@ document.addEventListener("DOMContentLoaded", function() {
                     alert("Kunde inte skapa PDF. Se till att en bild har genererats och en färg är vald.");
                     return;
                 }
-                
-                let hexCode = '';
-                const foundColor = findColor(query);
-                if (foundColor) {
-                    hexCode = foundColor.hex;
-                } else {
-                    try {
-                        const response = await fetch(`https://www.thecolorapi.com/id?ncs=${encodeURIComponent(query)}`);
-                        const data = await response.json();
-                        if (data.hex && data.hex.value) {
-                            hexCode = data.hex.value;
-                        } else { throw new Error(); }
-                    } catch (e) {
-                         alert("Kunde inte verifiera den egna NCS-koden för PDF-generering. Kontrollera koden och försök igen.");
-                         return;
-                    }
+
+                const colorDetails = await updateColorPreview(query);
+                if (!colorDetails) {
+                    alert("Kunde inte verifiera färgen. Försök igen.");
+                    return;
                 }
 
-                const colorName = foundColor ? foundColor.name : 'Egen NCS-kod';
-                const ncsCode = foundColor ? foundColor.ncs : query;
-                
+                const hexCode = colorDetails.hex;
+                if (!hexCode) {
+                    alert("Kunde inte verifiera färgkoden för PDF-generering. Kontrollera värdet och försök igen.");
+                    return;
+                }
+
+                const infoParts = [];
+                if (colorDetails.source === 'flugger') {
+                    infoParts.push(colorDetails.name);
+                    infoParts.push(`NCS: ${colorDetails.ncs}`);
+                } else {
+                    infoParts.push(colorDetails.displayLabel);
+                }
+
+                if (!infoParts.some(part => part.toUpperCase().includes(hexCode.toUpperCase()))) {
+                    infoParts.push(`HEX: ${hexCode.toUpperCase()}`);
+                }
+
+                const infoText = infoParts.join('  |  ');
+
                 const doc = new jsPDF({
                     orientation: 'landscape',
                     unit: 'mm',
@@ -238,20 +444,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 const infoY = yOffset + 3 + imgHeight + 12;
                 const swatchSize = 10;
                 doc.setFillColor(hexCode.toUpperCase());
-                doc.rect(xOffset, infoY, swatchSize, swatchSize, 'F'); 
+                doc.rect(xOffset, infoY, swatchSize, swatchSize, 'F');
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
                 doc.text("Vald Färg:", xOffset + swatchSize + 4, infoY + (swatchSize/2) + 3);
                 doc.setFont("helvetica", "normal");
-                const infoText = `${colorName}  |  NCS: ${ncsCode}  |  HEX: ${hexCode.toUpperCase()}`;
                 doc.text(infoText, xOffset + swatchSize + 4 + 25, infoY + (swatchSize/2) + 3);
-                
+
                 doc.setFontSize(8);
                 doc.setTextColor(150);
                 const footerText = "Notera: Digitala färger kan skilja sig från verkligheten. Vi rekommenderar alltid att provmåla. | Genererad: " + new Date().toLocaleDateString('sv-SE');
                 doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: 'center' });
 
-                const pdfFileName = `fargforslag_Ranea_Bygghandel_${ncsCode.replace(/\s/g, '_')}.pdf`;
+                const pdfFileName = `fargforslag_Ranea_Bygghandel_${colorDetails.downloadId || 'vald_farg'}.pdf`;
                 doc.save(pdfFileName);
            } catch(error) {
                console.error("Ett fel inträffade vid PDF-generering:", error);
@@ -276,7 +481,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     imageData: base64Data,
-                    colorName: colorInfo.name
+                    colorPrompt: colorInfo.prompt || colorInfo.name || colorInfo.displayLabel || 'the selected color',
+                    colorHex: colorInfo.hex || null,
+                    colorLabel: colorInfo.displayLabel || colorInfo.name || 'Vald färg'
                 })
             });
 
@@ -293,7 +500,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 resultImage.src = imageUrl;
                 resultImage.classList.remove('hidden');
                 downloadButton.href = imageUrl;
-                downloadButton.download = `ommalat_rum_${colorInfo.ncs.replace(/\s/g, '_')}.png`;
+                const downloadId = colorInfo.downloadId || colorInfo.ncs || colorInfo.name || 'vald_farg';
+                downloadButton.download = `ommalat_rum_${sanitizeForFilename(downloadId)}.png`;
                 downloadButtons.classList.remove('hidden');
             } else {
                 throw new Error("Kunde inte generera bilden. Svaret från servern var tomt.");
